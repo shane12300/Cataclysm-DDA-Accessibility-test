@@ -13,6 +13,7 @@ This fork aims to make the ordinary CDDA game accessible through NVDA. It does *
 - **E** in the Items tab of Shift+V: Examine the selected item. NVDA announces its detailed item properties and description as the item information window opens. This does not yet add a spoken Examine action to the Creatures or Terrain/Furniture tabs.
 - **x** (lowercase): Open the look-around cursor. Move the cursor with directional keys to examine visible or otherwise legitimately known tiles.
 - **Shift+X**: Peek around a corner. Select a direction and use the look-around cursor from the temporary peeking viewpoint. Peeking costs moves. The dedicated NVDA explanation of the peeking transition is still incomplete.
+- **Ctrl+F**: Describe the scene in view. Speaks, in order: indoors or outdoors and the kind of place, the light on your tile, hostile creatures grouped by kind and direction with whether they see you, friendly and neutral creatures, how far you can go in each of the eight directions and what stops you, the nearest doors, windows and stairs, any visible hazards such as fire or spotted traps, then furniture, vehicles, and how many tiles hold items. Costs no game time.
 - **Ctrl+L** or **F8**: Describe the eight tiles adjacent to your character.
 - **F6**: Describe the tile underfoot.
 - **F11**: Toggle automatic announcement when the terrain underfoot changes. Off by default to avoid needless narration.

@@ -5657,6 +5657,16 @@
   },
   {
     "type": "keybinding",
+    "id": "DESCRIBE_SCENE",
+    "name": "Describe the scene in view: setting, creatures, open space, exits and objects (Ctrl+F)",
+    "category": "DEFAULTMODE",
+    "bindings": [
+      { "input_method": "keyboard_char", "key": "CTRL+F" },
+      { "input_method": "keyboard_code", "key": "f", "mod": [ "ctrl" ] }
+    ]
+  },
+  {
+    "type": "keybinding",
     "id": "DESCRIBE_STATUS",
     "name": "Speak status glance: creatures and highlighted sidebar values (Ctrl+S)",
     "category": "DEFAULTMODE",

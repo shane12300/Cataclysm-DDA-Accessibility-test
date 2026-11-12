@@ -90,6 +90,7 @@
 #if defined(TILES)
 #include "sdl_gamepad.h"
 #endif
+#include "scene_description.h"
 #include "sidebar_accessibility.h"
 #include "sleep.h"
 #include "sounds.h"
@@ -3394,6 +3395,9 @@ bool game::handle_action()
                "Lowercase x opens the look cursor; use direction keys to inspect tiles. "
                "Shift plus X peeks around a corner; choose a direction, then use the look cursor. "
                "Peeking costs moves and its spoken feedback is still being improved. "
+               "Control plus F describes the scene: where you are, the light, "
+               "creatures in view, how far you can go in each direction, exits, "
+               "hazards, furniture, vehicles, and items. "
                "Control plus L or F8 describes the eight adjacent tiles. "
                "F6 describes your current tile. Control plus S speaks a status glance: "
                "creatures in view, then anything the sidebar would highlight. "
@@ -3441,6 +3445,15 @@ bool game::handle_action()
             report += " " + dir.name + ": " + accessibility_describe_local_tile( tile ) + ".";
         }
         get_narration_service().announce( { narration_event::contextual_help, report, true } );
+        return false;
+    }
+    if( action == "DESCRIBE_SCENE" ) {
+        // Everything in view, most urgent first: setting, creatures, the
+        // shape of the space, exits, hazards, then furniture, vehicles
+        // and items.
+        get_narration_service().announce( {
+            narration_event::contextual_help, describe_scene( player_character ), true
+        } );
         return false;
     }
     if( action == "DESCRIBE_STATUS" ) {
