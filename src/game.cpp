@@ -2558,6 +2558,62 @@ tripoint_rel_omt game::mouse_edge_scrolling_overmap( input_context &ctxt )
     return ret.first;
 }
 
+// Describes what the avatar remembers of a tile that is currently out of
+// sight, or returns an empty string if nothing is remembered.  Map memory
+// holds only terrain and one "decoration" (furniture, vehicle part or known
+// trap); creatures, items and fields are never remembered.
+static std::string describe_remembered_tile( const tripoint_abs_ms &pos )
+{
+    const avatar &observer = get_avatar();
+    if( !observer.has_memory_at( pos ) ) {
+        return std::string();
+    }
+    const memorized_tile &memory = observer.get_memorized_tile( pos );
+
+    std::vector<std::string> parts;
+    const ter_str_id remembered_ter( memory.get_ter_id() );
+    if( !memory.get_ter_id().empty() && remembered_ter.is_valid() ) {
+        parts.emplace_back( remembered_ter->name() );
+    }
+
+    // The decoration is stored as a tileset id, so work out what kind of
+    // thing it names.
+    const std::string &dec = memory.get_dec_id();
+    if( !dec.empty() ) {
+        if( string_starts_with( dec, "vp_" ) ) {
+            // "vp_<part id>" with an optional "#<variant>" suffix.
+            std::string part = dec.substr( 3 );
+            const size_t variant = part.find( vehicles::variant_separator );
+            if( variant != std::string::npos ) {
+                part.erase( variant );
+            }
+            const vpart_id remembered_part( part );
+            if( remembered_part.is_valid() ) {
+                parts.emplace_back( string_format( _( "Vehicle part: %s" ),
+                                                   remembered_part->name() ) );
+            } else {
+                parts.emplace_back( _( "Vehicle part" ) );
+            }
+        } else if( const furn_str_id remembered_furn( dec ); remembered_furn.is_valid() ) {
+            parts.emplace_back( string_format( _( "Furniture: %s" ), remembered_furn->name() ) );
+        } else if( const trap_str_id remembered_trap( dec ); remembered_trap.is_valid() ) {
+            parts.emplace_back( string_format( _( "Trap: %s" ), remembered_trap->name() ) );
+        }
+    }
+
+    if( parts.empty() ) {
+        return std::string();
+    }
+    std::string description = _( "Not visible. Remembered: " );
+    for( size_t i = 0; i < parts.size(); ++i ) {
+        if( i != 0 ) {
+            description += ". ";
+        }
+        description += parts[i];
+    }
+    return description + ".";
+}
+
 std::string accessibility_describe_local_tile( const tripoint_bub_ms &tile )
 {
     map &here = get_map();
@@ -2566,7 +2622,10 @@ std::string accessibility_describe_local_tile( const tripoint_bub_ms &tile )
         return _( "Outside the loaded map." );
     }
     if( tile != observer.pos_bub() && !observer.sees( here, tile ) ) {
-        return _( "Not visible." );
+        // The map still draws tiles the character remembers.  Narrate that
+        // memory, clearly marked as such, rather than hiding it.
+        const std::string remembered = describe_remembered_tile( here.get_abs( tile ) );
+        return remembered.empty() ? std::string( _( "Not visible." ) ) : remembered;
     }
 
     std::string description = here.name( tile );
