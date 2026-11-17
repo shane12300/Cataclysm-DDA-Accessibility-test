@@ -5732,6 +5732,36 @@
   },
   {
     "type": "keybinding",
+    "id": "VEHICLE_STATUS",
+    "name": "Speak vehicle speed, heading, engines, fuel and damage (Ctrl+E)",
+    "category": "DEFAULTMODE",
+    "bindings": [
+      { "input_method": "keyboard_char", "key": "CTRL+E" },
+      { "input_method": "keyboard_code", "key": "e", "mod": [ "ctrl" ] }
+    ]
+  },
+  {
+    "type": "keybinding",
+    "id": "VEHICLE_FORWARD_SCAN",
+    "name": "Describe the visible path ahead of your vehicle (Ctrl+W)",
+    "category": "DEFAULTMODE",
+    "bindings": [
+      { "input_method": "keyboard_char", "key": "CTRL+W" },
+      { "input_method": "keyboard_code", "key": "w", "mod": [ "ctrl" ] }
+    ]
+  },
+  {
+    "type": "keybinding",
+    "id": "CYCLE_DRIVING_SPEECH",
+    "name": "Change how much is spoken automatically while driving (Ctrl+O)",
+    "category": "DEFAULTMODE",
+    "bindings": [
+      { "input_method": "keyboard_char", "key": "CTRL+O" },
+      { "input_method": "keyboard_code", "key": "o", "mod": [ "ctrl" ] }
+    ]
+  },
+  {
+    "type": "keybinding",
     "id": "READ_ARMOR_DETAILS",
     "name": "Read complete armor protection and properties",
     "category": "SORT_ARMOR",

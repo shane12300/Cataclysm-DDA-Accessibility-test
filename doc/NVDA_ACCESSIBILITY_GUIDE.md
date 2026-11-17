@@ -83,6 +83,24 @@ These apply to the inventory (**i**), drop, pickup, and other item selection lis
 - **Ctrl+R** or **F10**: Speak the last five game messages.
 - **F7**: Repeat the previous NVDA announcement.
 
+## Driving vehicles
+
+These keys work whenever you are in a vehicle, whether you are driving it, riding in it or controlling it remotely.
+
+- **Ctrl+E**: Vehicle status. Speed and target speed in words ("speed 12, target 20 mph, accelerating"), engine strain, which way the vehicle faces and which way you are steering it, skidding, each engine and whether it is on, fuel and battery percentages, lights, the vehicle's length and width, damaged wheels, engines and steering (named by where they sit, for example "front left wheel broken") and whether you are on road, flat ground or rough ground.
+- **Ctrl+W**: Path ahead. Follows the vehicle's own heading (or the direction it is sliding, while skidding, or behind it while reversing) across its full width, for roughly three turns of travel at the current speed. Reports how far the road or ground continues, then the nearest creatures, other vehicles, drops, deep water, walls and other obstacles with their distance and whether they are on the left side, center or right side of your path. Only tiles you can currently see are described; it tells you where your view ends.
+- **Ctrl+O**: Changes how much is spoken automatically while driving:
+  1. Off. Only Ctrl+E and Ctrl+W speak.
+  2. Steering and speed changes. After each steering or throttle key you hear the new heading ("Turning right to 105 degrees, east-southeast") or the new target speed.
+  3. Steering, speed and movement (the default). After each turn you also hear how far and which way the vehicle moved, its speed, when it stops, starts skidding, or moves onto a different kind of ground.
+  4. As 3, plus the nearest obstacle ahead after each turn while moving.
+
+Headings are compass azimuths, the same numbers the sidebar's Azimuth readout shows: 0 is north, 90 is east. Vehicles turn in 15 degree steps, so a vehicle at 105 degrees drifts slowly south while travelling east.
+
+The sidebar's Vehicle section in the F9 status browser now reads speed and heading in the same words instead of the drawn "25 < 10 mph".
+
+These features describe what is on screen. They never steer, brake or choose for you.
+
 ## Important distinctions
 
 **Shift+V** is the surroundings list; lowercase **v** is not the same command. **x** and **Shift+X** are different: looking around and peeking around a corner, respectively. **Ctrl+X** is not the accessibility look command. Capital letters in CDDA often represent Shift-modified commands; this guide explicitly writes out Shift when it matters.

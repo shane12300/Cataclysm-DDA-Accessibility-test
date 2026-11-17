@@ -39,6 +39,7 @@
 #include "debug.h"
 #include "debug_menu.h"
 #include "diary.h"
+#include "display.h"
 #include "distraction_manager.h"
 #include "do_turn.h"
 #include "event.h"
@@ -105,6 +106,7 @@
 #include "value_ptr.h"
 #include "veh_type.h"
 #include "vehicle.h"
+#include "vehicle_accessibility.h"
 #include "vpart_position.h"
 #include "vpart_range.h"
 #include "weather.h"
@@ -602,7 +604,10 @@ static void pldrive( const tripoint_rel_ms &p )
             return;
         }
     }
+    const driving_snapshot before_controls = capture_driving_snapshot( *veh );
     veh->pldrive( here, get_avatar(), p.x(), p.y(), p.z() );
+    // The vehicle's new heading and target speed are only drawn on screen.
+    announce_driving_change( before_controls, *veh );
 }
 
 static void pldrive( point_rel_ms d )
@@ -3403,6 +3408,9 @@ bool game::handle_action()
                "Control plus R or F10 reads the last five game messages. "
                "F7 repeats the previous narration. "
                "F11 toggles automatic terrain change announcements. "
+               "While in a vehicle, Control plus E reads its speed, heading, engines, "
+               "fuel, lights and damage, and Control plus W describes the path ahead. "
+               "Control plus O changes how much is spoken automatically while driving. "
                "To store items on a nearby cupboard, shelf, or other furniture tile, "
                "press Shift plus D to drop items on an adjacent tile, choose the "
                "direction of the furniture, then choose the items to place there. "
@@ -3466,6 +3474,26 @@ bool game::handle_action()
             report += " " + message.second + ".";
         }
         get_narration_service().announce( { narration_event::game_message, report, true } );
+        return false;
+    }
+    if( action == "VEHICLE_STATUS" || action == "VEHICLE_FORWARD_SCAN" ) {
+        map &here = get_map();
+        const vehicle *veh = display::vehicle_driven( player_character );
+        std::string report;
+        if( veh == nullptr ) {
+            report = _( "You are not in a vehicle." );
+        } else if( action == "VEHICLE_STATUS" ) {
+            report = vehicle_status_summary( here, *veh, player_character );
+        } else {
+            report = vehicle_forward_scan( here, *veh, player_character );
+        }
+        get_narration_service().announce( { narration_event::status_changed, report, true } );
+        return false;
+    }
+    if( action == "CYCLE_DRIVING_SPEECH" ) {
+        get_narration_service().announce( {
+            narration_event::contextual_help, cycle_driving_speech_level(), true
+        } );
         return false;
     }
     if( action == "TOGGLE_TERRAIN_NARRATION" ) {

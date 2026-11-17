@@ -76,6 +76,7 @@
 #include "ui_manager.h"
 #include "units.h"
 #include "vehicle.h"
+#include "vehicle_accessibility.h"
 #include "vpart_position.h"
 #include "weather.h"
 #include "worldfactory.h"
@@ -724,7 +725,10 @@ bool game::do_turn()
     m.build_floor_caches();
 
     m.process_falling();
+    // Spoken equivalent of watching the vehicle move on screen this turn.
+    const driving_motion_tracker driving_motion = begin_driving_motion( m, u );
     m.vehmove();
+    end_driving_motion( m, u, driving_motion );
     m.process_fields();
     m.process_items();
     explosion_handler::process_explosions();

@@ -120,6 +120,14 @@ This is an early vertical slice, not a complete accessible game yet:
 - The tests have been added to the project's Catch-based test suite, but a Windows build and live NVDA test have not yet been run from this environment.
 - Narration requests are forwarded immediately. A managed queue, verbosity controls, and event-specific announcement policies remain future work.
 
+### Driving
+
+`src/vehicle_accessibility.cpp` holds the driving speech. Its wording helpers (heading, speed, strain, mount region, displacement, steering change) have no map access and are unit tested. Three map-aware reports build on them: the Ctrl+E status summary, the Ctrl+W forward scan, and the per-turn motion report. The forward scan sweeps the vehicle's footprint along a `tileray` in its heading (or skid direction, or reverse), which is the same stepping the game uses to move vehicles. It only classifies tiles the avatar `sees()`.
+
+Hooks are deliberately thin: `pldrive()` in `handle_action.cpp` snapshots the vehicle before and after the key and calls `announce_driving_change()`, and `do_turn()` wraps `map::vehmove()` with `begin_driving_motion()` / `end_driving_motion()`. Steering feedback interrupts speech so a held key hears the newest value; per-turn motion is queued so it follows the key's feedback. The automatic level is an in-memory setting cycled with Ctrl+O, like the F11 terrain toggle.
+
+The sidebar reader special-cases `veh_cruise_text` and `veh_azimuth_text`.
+
 ### Gameplay keyboard bindings
 
 In DEFAULTMODE, Ctrl+L surveys adjacent tiles (F8 alternative), Ctrl+S speaks a status glance, F9 opens the status browser, and Ctrl+R reads the five most recent messages (F10 alternative). The glance and browser both come from `src/sidebar_accessibility.cpp`, which walks the player's active sidebar layout (`panel_manager`) widget by widget and turns each one into a spoken row, so the screen-reader player hears the same sections, order and vocabulary as a sighted player with the same layout. The browser itself (`src/status_browser.cpp`) is a `uilist` with one category per panel and its own `STATUS_BROWSER` keybinding context (F8 read section, F1 read all, Tab/Shift+Tab switch sections). These controls are deliberately scoped to gameplay: Ctrl+R continues to belong to the dialogue debug action when that interface is active, and Ctrl+S keeps its string-editor confirmation behavior. F6 describes terrain underfoot; F7 repeats the most recent narration; F11 toggles optional terrain change cues.

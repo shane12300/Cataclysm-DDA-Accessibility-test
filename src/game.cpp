@@ -2772,6 +2772,11 @@ input_context get_default_mode_input_context()
         ctxt.register_action( "READ_RECENT_MESSAGES", to_translation( "Read recent game messages" ) );
         ctxt.register_action( "TOGGLE_TERRAIN_NARRATION",
                               to_translation( "Toggle automatic terrain-change speech" ) );
+        ctxt.register_action( "VEHICLE_STATUS", to_translation( "Speak vehicle status" ) );
+        ctxt.register_action( "VEHICLE_FORWARD_SCAN",
+                              to_translation( "Describe the path ahead of your vehicle" ) );
+        ctxt.register_action( "CYCLE_DRIVING_SPEECH",
+                              to_translation( "Change automatic driving speech" ) );
         ctxt.register_action( "peek" );
         ctxt.register_action( "listitems" );
         ctxt.register_action( "zones" );

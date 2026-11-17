@@ -94,6 +94,17 @@ This milestone is a first accessible pass on these custom views; it does **not**
 - **Shift+0**: Open the diary. Navigate pages, change entries and page text. Confirm focused entries and explanatory text are spoken. F7 repeats.
 
 
+## Driving
+
+Use a character with some driving skill and a working car or motorcycle on a road in daylight. Tests in `tests/vehicle_accessibility_test.cpp` (`[vehicle_accessibility]`) cover the wording and the forward scan; these steps check the live game.
+
+- **Steering feedback**: Take control (Shift+6, take control). Press left and right. Each press should say "Turning left/right to N degrees, compass point". Throttle keys should say the new target and current speed. Holding a key should speak only the newest value, not a backlog.
+- **Per-turn motion**: Drive at 20 to 30 mph. After each turn NVDA should say the distance and direction moved and the speed. Leaving the road should add "now on flat ground" or "now on rough ground". Braking to a stop should say "Stopped".
+- **Ctrl+O**: Cycle all four levels. Check level 1 is silent while driving, level 2 speaks only after keys, and level 4 adds the nearest obstacle after each turn.
+- **Ctrl+W**: Park facing a wall or tree 5 to 10 tiles away and confirm its name, distance and side. Spawn or wait for a zombie in the path and confirm it is listed before scenery at the same distance. At night without headlights confirm it says where your view ends and never names unseen tiles. Reverse and confirm it scans behind.
+- **Ctrl+E**: Confirm speed, facing, engines, fuel, battery, lights, footprint and on-road state. Break a wheel with debug tools and confirm it is named by position.
+- **Status browser**: With the Vehicle panel enabled in the sidebar, open F9 while driving. The Vehicle section should read "Speed: speed N, target M mph, ..." and "Azimuth: N degrees, compass point".
+
 ## Spoken text polish
 
 - In Look Around (X + arrows), moving one tile west onto a table should speak "1 west. table", with any observed item cue appended. Do not prepend "Look cursor".

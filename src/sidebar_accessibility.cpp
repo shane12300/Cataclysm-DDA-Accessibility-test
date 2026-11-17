@@ -33,6 +33,8 @@
 #include "point.h"
 #include "string_formatter.h"
 #include "translations.h"
+#include "vehicle.h"
+#include "vehicle_accessibility.h"
 #include "widget.h"
 
 static const efftype_id effect_bandaged( "bandaged" );
@@ -448,6 +450,33 @@ void leaf_rows( widget &w, const widget_id &wid, const avatar &ava, int width,
             status_row row;
             row.label = label.empty() ? std::string( _( "Overmap" ) ) : label;
             row.value = overmap_context_summary( ava );
+            out.push_back( row );
+            return;
+        }
+        case widget_var::veh_cruise_text:
+        case widget_var::veh_azimuth_text: {
+            // "25 < 10 mph" reads as "25 less than 10"; the azimuth alone
+            // gives no compass direction. Speak both in words.
+            const vehicle *veh = display::vehicle_driven( ava );
+            if( veh == nullptr ) {
+                if( !disabled_when_empty ) {
+                    status_row row;
+                    row.label = label;
+                    row.value = _( "not driving" );
+                    out.push_back( row );
+                }
+                return;
+            }
+            status_row row;
+            if( w._var == widget_var::veh_cruise_text ) {
+                row.label = label.empty() ? std::string( _( "Speed" ) ) : label;
+                row.value = describe_speed( veh->velocity, veh->cruise_velocity );
+                row.band = engine_strain_word( veh->strain( get_map() ) );
+                row.abnormal = !row.band.empty();
+            } else {
+                row.label = label.empty() ? std::string( _( "Heading" ) ) : label;
+                row.value = describe_heading( veh->face.dir() );
+            }
             out.push_back( row );
             return;
         }
