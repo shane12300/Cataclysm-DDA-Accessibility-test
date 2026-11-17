@@ -781,7 +781,7 @@ std::string expand_sidebar_label( const std::string &label, const widget_id &wid
         std::replace( text.begin(), text.end(), '_', ' ' );
     }
     // Remove widget-variable suffixes such as "weather text".
-    for( const std::string &suffix : { " text", " desc", " num", " label" } ) {
+    for( const std::string suffix : { " text", " desc", " num", " label" } ) {
         if( text.size() > suffix.size() &&
             text.compare( text.size() - suffix.size(), suffix.size(), suffix ) == 0 ) {
             text.erase( text.size() - suffix.size() );
