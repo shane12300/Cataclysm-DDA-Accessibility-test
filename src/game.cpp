@@ -2604,14 +2604,12 @@ static std::string describe_remembered_tile( const tripoint_abs_ms &pos )
     if( parts.empty() ) {
         return std::string();
     }
-    std::string description = _( "Not visible. Remembered: " );
-    for( size_t i = 0; i < parts.size(); ++i ) {
-        if( i != 0 ) {
-            description += ". ";
-        }
-        description += parts[i];
+    // Lead with what is there; that it is only a memory comes last.
+    std::string description;
+    for( const std::string &part : parts ) {
+        description += part + ". ";
     }
-    return description + ".";
+    return description + _( "Remembered" );
 }
 
 std::string accessibility_describe_local_tile( const tripoint_bub_ms &tile )
