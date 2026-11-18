@@ -5,6 +5,7 @@
 #include <climits>
 #include <cmath>
 #include <cstdlib>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -78,8 +79,11 @@ struct path_hit {
     std::string what;
     std::string side;
     // Lower sorts first at the same distance: creatures before vehicles
-    // before terrain, so moving threats are never hidden by scenery.
+    // before terrain. Creatures (priority 0) are also exempt from the cap on
+    // how many things are read out, so scenery never hides a moving threat.
     int priority = 0;
+    // How many creatures of this name are on this side of the path.
+    int count = 1;
 };
 
 // Something on this tile that a driver needs to know about, or empty.
@@ -535,25 +539,26 @@ std::string vehicle_forward_scan( map &here, const vehicle &veh, const Character
     bool lane_open = true;
 
     std::vector<path_hit> hits;
-    std::set<std::string> reported;
+    std::map<std::string, size_t> reported;
     std::set<tripoint_bub_ms> checked;
-    int seen_until = 0;
-    bool sight_blocked = false;
+    // Steps from the vehicle over which every tile of the path was visible.
+    // "Clear" is only ever claimed for this stretch.
+    int visible_until = 0;
+    bool unbroken_view = true;
+    bool any_seen = false;
     tileray ray( direction );
     point_rel_ms offset = point_rel_ms::zero;
     for( int step = 1; step <= range; ++step ) {
         ray.advance( 1 );
         offset += point_rel_ms( ray.dx(), ray.dy() );
-        bool any_seen = false;
+        bool row_fully_seen = true;
         for( const tripoint_bub_ms &start : footprint ) {
             const tripoint_bub_ms p = start + offset;
             if( own.count( p ) || !checked.insert( p ).second ) {
                 continue;
             }
-            if( !here.inbounds( p ) ) {
-                continue;
-            }
-            if( !you.sees( here, p ) ) {
+            if( !here.inbounds( p ) || !you.sees( here, p ) ) {
+                row_fully_seen = false;
                 continue;
             }
             any_seen = true;
@@ -564,9 +569,13 @@ std::string vehicle_forward_scan( map &here, const vehicle &veh, const Character
             const double lateral = ( p.x() - cx ) * rx + ( p.y() - cy ) * ry;
             hit.side = side_word( lateral, half_width );
             hit.distance = step;
-            // One mention per kind of thing and side; the nearest wins.
-            if( reported.insert( hit.what + "|" + hit.side ).second ) {
+            // One mention per kind of thing and side; the nearest wins and
+            // further creatures of the same name are counted.
+            const auto inserted = reported.emplace( hit.what + "|" + hit.side, hits.size() );
+            if( inserted.second ) {
                 hits.push_back( hit );
+            } else if( hit.priority == 0 ) {
+                ++hits[inserted.first->second].count;
             }
         }
         const tripoint_bub_ms lane = lane_start + offset;
@@ -583,10 +592,10 @@ std::string vehicle_forward_scan( map &here, const vehicle &veh, const Character
                 lane_open = false;
             }
         }
-        if( any_seen ) {
-            seen_until = step;
-        } else if( !sight_blocked && step > 1 ) {
-            sight_blocked = true;
+        if( unbroken_view && row_fully_seen ) {
+            visible_until = step;
+        } else {
+            unbroken_view = false;
         }
     }
     std::stable_sort( hits.begin(), hits.end(), []( const path_hit & a, const path_hit & b ) {
@@ -608,18 +617,42 @@ std::string vehicle_forward_scan( map &here, const vehicle &veh, const Character
                                           same_ground_tiles ) );
         }
     }
+    // The nearest things of any kind, then every remaining visible creature:
+    // scenery in front must not push a creature off the end of the list. The
+    // brief form gives the nearest thing and the nearest creature.
     const size_t max_hits = brief ? 1 : 5;
-    for( size_t i = 0; i < hits.size() && i < max_hits; ++i ) {
+    const size_t max_extra_creatures = brief ? 1 : 5;
+    size_t extra_creatures = 0;
+    bool creature_spoken = false;
+    for( size_t i = 0; i < hits.size(); ++i ) {
         const path_hit &hit = hits[i];
-        out.push_back( string_format( n_gettext( "%1$s %2$d tile, %3$s", "%1$s %2$d tiles, %3$s",
-                                      hit.distance ), hit.what, hit.distance, hit.side ) );
+        const bool creature = hit.priority == 0;
+        if( i >= max_hits ) {
+            if( !creature || extra_creatures >= max_extra_creatures ||
+                ( brief && creature_spoken ) ) {
+                continue;
+            }
+            ++extra_creatures;
+        }
+        creature_spoken = creature_spoken || creature;
+        std::string line = string_format( n_gettext( "%1$s %2$d tile, %3$s",
+                                          "%1$s %2$d tiles, %3$s", hit.distance ),
+                                          hit.what, hit.distance, hit.side );
+        if( hit.count > 1 ) {
+            line += string_format( _( ", plus %d more further on" ), hit.count - 1 );
+        }
+        out.push_back( line );
     }
-    if( hits.empty() ) {
-        out.push_back( string_format( _( "Path clear for %d tiles" ), seen_until ) );
+    if( hits.empty() && visible_until > 0 ) {
+        out.push_back( string_format( _( "Path clear for %d tiles" ), visible_until ) );
     }
-    if( !brief && seen_until < range ) {
-        out.push_back( seen_until == 0 ? std::string( _( "You can't see the path ahead" ) ) :
-                       string_format( _( "Can't see beyond %d tiles" ), seen_until ) );
+    if( visible_until == 0 ) {
+        // Said in the brief form too: silence must not sound like a clear road.
+        out.emplace_back( any_seen ? _( "You can't see the whole width of the path ahead" ) :
+                          _( "You can't see the path ahead" ) );
+    } else if( !brief && visible_until < range ) {
+        out.push_back( string_format( _( "Can't see the whole path beyond %d tiles" ),
+                                      visible_until ) );
     }
     std::string result;
     for( const std::string &s : out ) {

@@ -122,7 +122,7 @@ This is an early vertical slice, not a complete accessible game yet:
 
 ### Driving
 
-`src/vehicle_accessibility.cpp` holds the driving speech. Its wording helpers (heading, speed, strain, mount region, displacement, steering change) have no map access and are unit tested. Three map-aware reports build on them: the Ctrl+E status summary, the Ctrl+W forward scan, and the per-turn motion report. The forward scan sweeps the vehicle's footprint along a `tileray` in its heading (or skid direction, or reverse), which is the same stepping the game uses to move vehicles. It only classifies tiles the avatar `sees()`.
+`src/vehicle_accessibility.cpp` holds the driving speech. Its wording helpers (heading, speed, strain, mount region, displacement, steering change) have no map access and are unit tested. Three map-aware reports build on them: the Ctrl+E status summary, the Ctrl+W forward scan, and the per-turn motion report. The forward scan sweeps the vehicle's footprint along a `tileray` in its heading (or skid direction, or reverse), which is the same stepping the game uses to move vehicles. It only classifies tiles the avatar `sees()`, claims "clear" only for the unbroken stretch where every tile across the path is seen, and exempts creatures from the cap on reported obstacles.
 
 Hooks are deliberately thin: `pldrive()` in `handle_action.cpp` snapshots the vehicle before and after the key and calls `announce_driving_change()`, and `do_turn()` wraps `map::vehmove()` with `begin_driving_motion()` / `end_driving_motion()`. Steering feedback interrupts speech so a held key hears the newest value; per-turn motion is queued so it follows the key's feedback. The automatic level is an in-memory setting cycled with Ctrl+O, like the F11 terrain toggle.
 

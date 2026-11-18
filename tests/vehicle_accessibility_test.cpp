@@ -232,15 +232,30 @@ TEST_CASE( "forward scan reports visible obstacles in the vehicle's path",
         CHECK( contains( scan, "wall 6 tiles, center" ) );
         CHECK_FALSE( contains( scan, "Path clear" ) );
     }
-    SECTION( "creatures come before scenery at the same distance" ) {
+    SECTION( "the brief form names the nearest creature" ) {
         const tripoint_bub_ms ahead( tv.front_x + 4, tv.lane_y, 0 );
         spawn_test_monster( "mon_zombie", ahead );
-        here.ter_set( ahead + tripoint( 0, 1, 0 ), ter_id( "t_wall" ) );
-        here.invalidate_map_cache( 0 );
-        here.build_map_cache( 0, true );
         const std::string scan = vehicle_forward_scan( here, *tv.veh, ava, 12, true );
         CAPTURE( scan );
         CHECK( contains( scan, "zombie 4 tiles" ) );
+    }
+    SECTION( "creatures of the same name on one side are counted" ) {
+        spawn_test_monster( "mon_zombie", tripoint_bub_ms( tv.front_x + 4, tv.lane_y, 0 ) );
+        spawn_test_monster( "mon_zombie", tripoint_bub_ms( tv.front_x + 7, tv.lane_y, 0 ) );
+        const std::string scan = vehicle_forward_scan( here, *tv.veh, ava, 12 );
+        CAPTURE( scan );
+        CHECK( contains( scan, "zombie 4 tiles, center, plus 1 more further on" ) );
+    }
+    SECTION( "the path is not called clear past where the view ends" ) {
+        const tripoint_bub_ms wall( tv.front_x + 6, tv.lane_y, 0 );
+        here.ter_set( wall, ter_id( "t_wall" ) );
+        here.invalidate_map_cache( 0 );
+        here.build_map_cache( 0, true );
+        REQUIRE_FALSE( ava.sees( here, wall + tripoint( 2, 0, 0 ) ) );
+        const std::string scan = vehicle_forward_scan( here, *tv.veh, ava, 12 );
+        CAPTURE( scan );
+        CHECK( contains( scan, "Can't see the whole path beyond 6 tiles" ) );
+        CHECK_FALSE( contains( scan, "Path clear" ) );
     }
     SECTION( "ground changes along the lane are reported" ) {
         for( int x = tv.front_x + 5; x <= tv.front_x + 12; ++x ) {
